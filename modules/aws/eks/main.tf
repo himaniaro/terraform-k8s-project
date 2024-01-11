@@ -1,13 +1,3 @@
-variable "cluster_name" {
-type=string
-description = "The name of the EKS cluster"
-}
-
-variable "namespaces" {
- type = list(string)
- default = []
-}
-
 resource "aws_iam_role" "eks"{
 name="eks-cluster"
 assume_role_policy = jsonencode({
@@ -66,10 +56,10 @@ resource "aws_security_group" "eks_sg" {
 
 resource "aws_eks_cluster" "eks" {
  name = var.cluster_name
- role.arn = aws_iam_role.eks.arn
+ role_arn = aws_iam_role.eks.arn
  vpc_config { 
 subnet_ids = aws_subnet.eks_subnet[*].id
-security_groups_ids = [aws_security_group.eks_sg.id]
+security_group_ids = [aws_security_group.eks_sg.id]
  }
  depends_on = [aws_vpc.eks_vpc]
 }

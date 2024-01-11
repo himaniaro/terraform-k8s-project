@@ -1,5 +1,5 @@
 provider "aws" {
-region = "ap-south-1"
+  region = var.region
 }
 
 module "eks_cluster" {
@@ -10,12 +10,12 @@ namespaces = ["services", "monitoring"]
 }
 
 module "nginx_services" {
-source = "../../../../modules/networking/expose_to_internet"
+source = "../../../../modules/aws/networking/expose_to_internet"
 namespaces = ["services"]
 }
 
 module "monitoring" {
-source = "../../../../modules/monitoring/prometheus_grafana"
+source = "../../../../modules/aws/monitoring/prometheus_grafana"
 namespaces = ["monitoring"]
 }
 

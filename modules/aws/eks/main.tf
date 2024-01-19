@@ -11,7 +11,15 @@ Statement = [{
       },
     ],
   })
+tags = {
+    Name = "eks-cluster-role",
+  }
 }
+
+output "role_arn" {
+  value = aws_iam_role.eks.arn
+}
+
 
 # VPC configuration for the EKS cluster
 resource "aws_vpc" "eks_vpc" {
@@ -61,7 +69,7 @@ resource "aws_eks_cluster" "eks" {
 subnet_ids = aws_subnet.eks_subnet[*].id
 security_group_ids = [aws_security_group.eks_sg.id]
  }
- depends_on = [aws_vpc.eks_vpc]
+ depends_on = [aws_vpc.eks_vpc, aws_iam_role.eks]
 }
 
 resource "aws_eks_node_group" "eks_nodes" {

@@ -7,3 +7,8 @@ variable "namespaces" {
 type = list(string)
 default= []
 }
+
+variable "cluster_role_arn" {
+  type        = string
+  description = "The ARN of the IAM role for the EKS cluster"
+}

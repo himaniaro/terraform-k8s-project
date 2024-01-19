@@ -5,10 +5,26 @@ provider "helm" {
   }
 }
 
+# Define the VPC variable for referencing
+data "aws_vpcs" "eks_vpc" {}
+
+# Use count.index to loop through namespaces
+resource "aws_subnet" "grafana_lb_subnet" {
+  count = length(var.namespaces)
+
+  cidr_block        = "10.0.${count.index + 2}.0/24"
+  availability_zone = "us-west-2a"
+  vpc_id            = data.aws_vpcs.eks_vpc.ids[count.index]  # Use the VPC IDs
+
+  tags = {
+    Name = "grafana-lb-subnet-${count.index + 2}"
+  }
+}
+
 resource "kubernetes_service" "grafana_service" {
   metadata {
     name      = "grafana"
-    namespace = var.namespaces[1]
+    namespace = var.namespaces[0]
   }
 
   spec {
@@ -43,17 +59,6 @@ resource "aws_security_group" "grafana_lb_sg" {
   }
 }
 
-# Subnets for Grafana ALB
-resource "aws_subnet" "grafana_lb_subnet" {
-  count = length(var.namespaces)  # Assuming each namespace has its own subnet
-
-  cidr_block = "10.0.${count.index + 2}.0/24"  # Adjust as needed
-  availability_zone = "us-west-2a"  # Choose your desired availability zone
-
-  tags = {
-    Name = "grafana-lb-subnet-${count.index + 2}"
-  }
-}
 
 # ALB Listener for Grafana
 resource "aws_lb_listener" "grafana_lb_listener" {
@@ -75,7 +80,7 @@ resource "helm_release" "prometheus" {
 name = "prometheus"
 repository = "https://prometheus-community.github.io/helm-charts"
 chart = "prometheus"
-namespace = var.namespace
+namespace = var.namespaces[0]
 set{
  name = "server.service.type"
  value = "LoadBalancer"
@@ -86,7 +91,7 @@ resource "helm_release" "grafana" {
 name = "grafana"
 repository = "https://grafana.github.io/helm-charts"
 chart = "grafana"
-namespace = var.namespace
+namespace = var.namespaces[0]
 set{
  name = "service.type"
  value = "LoadBalancer"
